@@ -3,7 +3,7 @@ import run from "aocrunner";
 const parseInput = (rawInput: string) => {
   const left: number[] = []
   const right: number[] = []
-  rawInput.split("\n").map(line => {
+  rawInput.split("\n").forEach(line => {
     const [l, r] = line.split("   ")
     left.push(Number(l))
     right.push(Number(r))
