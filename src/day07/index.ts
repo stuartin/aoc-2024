@@ -14,14 +14,12 @@ const parseInput = (rawInput: string) => {
   })
 };
 
-function genOperatorCombos(length: number): string[][] {
-  const operators = ['+', '*']
-
+function genOperatorCombos(operators: string[], length: number): string[][] {
   if (length === 1) {
     return operators.map(option => [option])
   }
 
-  const combinations = genOperatorCombos(length - 1);
+  const combinations = genOperatorCombos(operators, length - 1);
   const result = [];
 
   for (const combination of combinations) {
@@ -33,7 +31,11 @@ function genOperatorCombos(length: number): string[][] {
   return result;
 }
 
-function calculate(first: number, equation: any[]) {
+function concatNumber(first: number, second: number) {
+  return Number(String(first) + String(second))
+}
+
+function calculate(equation: any[]) {
 
   const result = equation.reduce((acc, current, i) => {
     if (i === 0) {
@@ -45,6 +47,8 @@ function calculate(first: number, equation: any[]) {
 
       if (typeof nextNumber === 'number') {
         switch (current) {
+          case '||':
+            return concatNumber(acc, nextNumber)
           case '*':
             return acc * nextNumber;
           case '+':
@@ -56,7 +60,7 @@ function calculate(first: number, equation: any[]) {
 
     }
     return acc;
-  }, first as number);
+  }, equation[0] as number);
 
   return result
 }
@@ -80,10 +84,10 @@ const part1 = (rawInput: string) => {
 
     let isSolvable = false
 
-    const operatorCombos = genOperatorCombos(operatorPositions)
+    const operatorCombos = genOperatorCombos(['+', '*'], operatorPositions)
     for (const combo of operatorCombos) {
       const equation = numbers.flatMap((number, index) => [number, combo[index]].filter(x => x !== undefined));
-      const result = calculate(equation[0] as number, equation)
+      const result = calculate(equation)
       if (result === answer) {
         // console.log({ answer, equation })
         isSolvable = true
@@ -107,9 +111,36 @@ const part1 = (rawInput: string) => {
 };
 
 const part2 = (rawInput: string) => {
-  const input = parseInput(rawInput);
+  const equations = parseInput(rawInput);
 
-  return;
+  const results = equations.flatMap(({ answer, numbers, operatorPositions }) => {
+
+    let isSolvable = false
+
+    const operatorCombos = genOperatorCombos(['+', '*', '||'], operatorPositions)
+    for (const combo of operatorCombos) {
+      const equation = numbers.flatMap((number, index) => [number, combo[index]].filter(x => x !== undefined));
+      const result = calculate(equation)
+      if (result === answer) {
+        // console.log({ answer, equation })
+        isSolvable = true
+        break
+      }
+
+    }
+
+    if (isSolvable) {
+      return answer
+    } else {
+      return []
+    }
+  })
+
+  const total = results.reduce((total, curr) => {
+    return total += curr
+  }, 0)
+
+  return total;
 };
 
 run({
