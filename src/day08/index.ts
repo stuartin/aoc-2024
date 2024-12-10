@@ -40,9 +40,9 @@ const parseInput = (rawInput: string) => {
     }
 
     getMapBoundary() {
-      const height = this.map.length
-      const width = this.map[0].length
-      return [width, height]
+      const maxY = this.map.length - 1
+      const maxX = this.map[0].length - 1
+      return [maxX, maxY]
     }
 
     getSignals(char: string) {
@@ -93,24 +93,23 @@ const parseInput = (rawInput: string) => {
 
       return this.removeDuplicates(allAntinodes)
         .filter(([x, y]) => !signals.some(([sX, sY]) => x === sX && y === sY))
-        .filter(([x, y]) => x < this.getMapBoundary()[0] && x >= 0 && y < this.getMapBoundary()[1] && y >= 0)
+        .filter(([x, y]) => x <= this.getMapBoundary()[0] && x >= 0 && y <= this.getMapBoundary()[1] && y >= 0)
     }
 
     plotAntinodesWithResonatHarmonics(signals: number[][]) {
-
       let allAntinodes: number[][] = []
       for (let i = 0; i < signals.length; i++) {
         const signal = signals[i]
         const remainingSignals = signals.slice(i + 1)
 
-        console.log({ signal, remainingSignals })
+        // console.log({ signal, remainingSignals })
 
         const signalAntinodes = remainingSignals
           .flatMap(([x, y]) => {
 
             if (signal[0] < x) {
               const delta = [x - signal[0], y - signal[1]]
-              console.log(1, { delta })
+              // console.log(1, { delta })
 
               // left
               let currLX = signal[0]
@@ -132,14 +131,14 @@ const parseInput = (rawInput: string) => {
                 currRY += delta[1]
               }
 
-              console.log({ lefties, righties })
+              // console.log({ lefties, righties })
 
               return [...lefties, ...righties]
             }
 
             if (signal[0] > x) {
               const delta = [signal[0] - x, signal[1] - y]
-              console.log(2, { delta })
+              // console.log(2, { delta })
 
               // left
               let currLX = x
@@ -161,7 +160,7 @@ const parseInput = (rawInput: string) => {
                 currRY += delta[1]
               }
 
-              console.log({ lefties, righties })
+              // console.log({ lefties, righties })
 
               return [...lefties, ...righties]
             }
@@ -178,11 +177,18 @@ const parseInput = (rawInput: string) => {
         ]
       }
 
-      console.log({ allAntinodes })
+      if (signals.length > 2) {
+        allAntinodes = [
+          ...allAntinodes,
+          ...signals
+        ]
+      }
+
+      // console.log({ allAntinodes })
 
       return this.removeDuplicates(allAntinodes)
         // .filter(([x, y]) => !signals.some(([sX, sY]) => x === sX && y === sY))
-        .filter(([x, y]) => x < this.getMapBoundary()[0] && x >= 0 && y < this.getMapBoundary()[1] && y >= 0)
+        .filter(([x, y]) => x <= this.getMapBoundary()[0] && x >= 0 && y <= this.getMapBoundary()[1] && y >= 0)
     }
   }
 
@@ -216,29 +222,29 @@ const part1 = (rawInput: string) => {
 };
 
 const part2 = (rawInput: string) => {
-  const rawInput2 = `T.........
-  ...T......
-  .T........
-  ..........
-  ..........
-  ..........
-  ..........
-  ..........
-  ..........
-  ..........`
-  const antennas = parseInput(rawInput2);
+  const rawInput2 = `............
+  ........0...
+  .....0......
+  .......0....
+  ....0.......
+  ......A.....
+  ............
+  ............
+  ........A...
+  .........A..
+  ............
+  ............`
+  const antennas = parseInput(rawInput);
 
   console.log(antennas.availableSignals)
 
-  const antinodes = antennas.availableSignals.flatMap(signalChar => {
-    const signals = antennas.getSignals(signalChar)
-    const antinodes = antennas.plotAntinodesWithResonatHarmonics(signals)
-    return antinodes
-  })
-
-  console.log(antinodes.sort((a, b) => a[1] - b[1]))
-
-  console.log(antennas.printMap(antinodes))
+  const antinodes = antennas.removeDuplicates(
+    antennas.availableSignals.flatMap(signalChar => {
+      const signals = antennas.getSignals(signalChar)
+      const antinodes = antennas.plotAntinodesWithResonatHarmonics(signals)
+      return antinodes
+    })
+  )
 
   return antinodes.length;
 };
